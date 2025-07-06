@@ -1,0 +1,588 @@
+---
+title: "Data_cleaning_BD"
+author: "Sai"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Load the Necessary Libraries
+```{r,warning=FALSE,message=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(inspectdf)
+library(janitor)
+```
+
+#Load the dataset.
+```{r,warning=FALSE,message=FALSE}
+crime <- read_csv("./data/crime_all.csv")
+crime
+```
+
+#Clean the names of all the columns for convenience with janitor package. 
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- clean_names(crime)
+crime_cleaned
+```
+
+#Summarize the data distribution.
+```{r,warning=FALSE,message=FALSE}
+skim(crime_cleaned)
+```
+# Correcting the Column in Mismatching Format. 
+The occurred_date, report_date columns are filled in POSIXct format on R. This column has date values in yyyy-mm-dd format. But a few cells of this column at the bottom have time as well in this format, for eg, 05:00:00. Removed the times on this column. 
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleaned %>% 
+  mutate(occurred_date = as.Date(occurred_date))
+
+crime_cleaned <- crime_cleaned %>% 
+  mutate(report_date = as.Date(report_date))
+```
+
+Found that a few rows at the bottom of the report_date_time (in POSIXct) column has values in this style "2016-03-18 22:16:00" by inspection. This column has the right dates but the times are wrong. There is another column report_time (in dbl) that has right times in hhmm format, but without colon (eg, 1910). Extracted the right times for the report_date_time column from report_time column. This was verified with the dataset (03-25) before merging.
+
+# Formatting Values.
+
+By inspection, report_date_time column has a few rows at the bottom that has wrong times. The report_time has the right times, checked by inspection with (03-25) dataset. The report_date_time column has been formatted accordingly.
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned[4980995, 16:18]
+```
+
+```{r,warning=FALSE,message=FALSE}
+three_25 <- read_csv("./data/Crime_Reports_2(03-25).csv")
+```
+
+```{r,warning=FALSE,message=FALSE}
+three_25[,8:10]
+```
+
+```{r,warning=FALSE,message=FALSE}
+rm(three_25)
+```
+
+```{r,warning=FALSE,message=FALSE}
+library(lubridate)
+
+crime_cleaned <- crime_cleaned %>% 
+  mutate(
+    report_date_time = update(
+      report_date_time,
+      hour   = report_time %/% 100,      # integer division → HH
+      minute = report_time %% 100,       # remainder → MM
+      second = 0                         # reset seconds
+    )
+  )
+```
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned[4980995, 16:18]
+```
+
+# Dealing with NAs for Temporal features.
+I have found that occurred_date (POSIXct) column is full (in yyyy-mm-dd format, eg,2023-07-29) without any NAs. But the numeric columns,  occurred_date_time_year, occurred_date_time_month, occurred_date_time_week_of_year, occurred_date_time_day, and the character column occurred_date_time_day_of_week have exactly 203 NAs. Extracted the dates from occurred_date column and filled the cells which has NAs. 
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned %>%
+  filter(
+    if_any(
+      c(occurred_date_time_year,
+        occurred_date_time_month,
+        occurred_date_time_week_of_year,
+        occurred_date_time_day,
+        occurred_date_time_day_of_week),
+      is.na
+    )
+  ) %>%
+  select(
+    incident_number,
+    occurred_date,
+    occurred_date_time_year
+  )
+
+```
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleaned %>% 
+  mutate(
+    occurred_date_time_year         = coalesce(occurred_date_time_year, year(  occurred_date)),
+    occurred_date_time_month        = coalesce(occurred_date_time_month, month( occurred_date)),
+    occurred_date_time_week_of_year = coalesce(occurred_date_time_week_of_year, week(  occurred_date)),
+    occurred_date_time_day          = coalesce(occurred_date_time_day, day(   occurred_date)),
+    occurred_date_time_day_of_week = coalesce(
+      occurred_date_time_day_of_week,
+      weekdays(occurred_date))
+  )
+```
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned %>%
+  filter(
+    if_any(
+      c(occurred_date_time_year,
+        occurred_date_time_month,
+        occurred_date_time_week_of_year,
+        occurred_date_time_day,
+        occurred_date_time_day_of_week),
+      is.na
+    )
+  )
+```
+
+```{r,warning=FALSE,message=FALSE}
+skim(crime_cleaned)
+```
+The "occurred_date_time" column (in POSIXct) with the format "2003-05-28 08:16:00", has 297 NA rows. The "occurred_date" column (in Date) has no NAs. Extracted the dates and imputed the times as "00:00:00" for ""occurred_date_time".
+
+And imputed NA-filled cells of the numeric columns, namely, "occurred_date_time_hour", "occurred_date_time_minute", "occurred_date_time_seconds", and "occurred_time" with "00:00:00". 
+```{r,warning=FALSE,message=FALSE}
+orig_tz <- attr(crime_cleaned$occurred_date_time, "tzone")[[1]]
+na_idx <- is.na(crime_cleaned$occurred_date_time)
+
+crime_cleaned$occurred_date_time[na_idx] <- 
+  as.POSIXct(
+    paste(crime_cleaned$occurred_date[na_idx], "00:00:00"),
+    tz = orig_tz
+  )
+```
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleaned %>%
+  mutate(
+    # pull out components from your now-complete POSIXct
+    h = hour(  occurred_date_time),
+    m = minute(occurred_date_time),
+    s = second(occurred_date_time),
+
+    # fill the numeric columns only where they’re still NA
+    occurred_date_time_hour    = coalesce(occurred_date_time_hour,    h),
+    occurred_date_time_minute  = coalesce(occurred_date_time_minute,  m),
+    occurred_date_time_seconds = coalesce(occurred_date_time_seconds, s),
+
+    # fill your “seconds since midnight” field
+    occurred_time = coalesce(occurred_time, h * 3600 + m * 60 + s)
+  ) %>%
+  select(-h, -m, -s)
+```
+
+```{r,warning=FALSE,message=FALSE}
+sum(is.na(crime_cleaned$occurred_date_time))
+sum(is.na(crime_cleaned$occurred_date_time_hour))
+sum(is.na(crime_cleaned$occurred_date_time_minute))
+sum(is.na(crime_cleaned$occurred_date_time_seconds))
+sum(is.na(crime_cleaned$occurred_time))
+```
+# Retrieving the right values. 
+Now "occurred_date_time" column is perfect. I see that a few things on the correct column "occurred_date_time" is not matching with occurred_date_time_year, occurred_date_time_month, occurred_date_time_hour, occurred_date_time_week_of_year, occurred_date_time_day, occurred_date_time_day_of_week, occurred_date_time_hour, occurred_date_time_minute, occurred_date_time_seconds. Extracted the right dates for these columns from the correct column ""occurred_date_time".
+
+occurred_date_time_day_of_week is also converted from character to factor.
+```{r,warning=FALSE,message=FALSE}
+crime_cleanedi <- crime_cleaned %>%
+  mutate(
+    occurred_date_time_year         = year(    occurred_date_time),
+    occurred_date_time_month        = month(   occurred_date_time),
+    occurred_date_time_week_of_year = isoweek( occurred_date_time),
+    occurred_date_time_day          = day(     occurred_date_time),
+    occurred_date_time_day_of_week  = wday(    occurred_date_time,
+                                            label = TRUE,
+                                            abbr  = FALSE),
+    occurred_date_time_hour         = hour(    occurred_date_time),
+    occurred_date_time_minute       = minute(  occurred_date_time),
+    occurred_date_time_seconds      = second(  occurred_date_time)
+  )
+```
+
+```{r,warning=FALSE,message=FALSE}
+rm(crime) #Removed for convenience
+```
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleanedi #Created for convenience
+```
+
+```{r,warning=FALSE,message=FALSE}
+skim(crime_cleaned)
+```
+# Removal of Redundant Features & Cells.
+To crime_cleaned dataset performed the following things;-
+
+* Removed incident_number, ucr_category, category_description, and occurred_date_time_seconds  columns fully. 
+
+* Remove the cells that has NAs in location_type, apd_sector, apd_district, clearance_status, clearance_date, report_date_time. 
+
+```{r,warning=FALSE,message=FALSE}
+# Step 1: Remove the unwanted columns
+crime_cleaned <- crime_cleaned %>%
+  select(-incident_number, -ucr_category, -category_description, -occurred_date_time_seconds)
+
+# Step 2: Drop any rows where any of these six columns is NA
+crime_cleaned <- crime_cleaned %>%
+  filter(
+    !is.na(location_type),
+    !is.na(apd_sector),
+    !is.na(apd_district),
+    !is.na(clearance_status),
+    !is.na(clearance_date),
+    !is.na(report_date_time)
+  )
+
+```
+
+```{r, warning=FALSE, message=FALSE}
+crime_cleaned <- crime_cleaned %>%
+  select(-council_district)
+```
+
+```{r,warning=FALSE,message=FALSE}
+skim(crime_cleaned)
+```
+# Type-setting a few columns.
+In order to reduce redundancy and discrepancy of multiple data types, two columns (in date format) were converted to POSIXct format. 
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleanedi <- crime_cleaned %>%
+  mutate(
+    occurred_date = as.POSIXct(occurred_date),
+    report_date   = as.POSIXct(report_date)
+  )
+```
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleanedi
+```
+
+# Changing to the right formats.
+
+By inspection, found that a few rows at the bottom of the feature clearance_date contained times, for eg 17:00:00. With the conversion of the whole column to date format, the issue was addressed. And then the column was again converted to POSIXct due to the reasons stated previously. 
+
+```{r,warning=FALSE,message=FALSE}
+
+crime_cleaned <- crime_cleaned %>% mutate(
+  clearance_date = as_date(clearance_date)
+)
+
+crime_cleaned <- crime_cleaned %>% mutate(
+  clearance_date = as.POSIXct(clearance_date)
+)
+```
+
+# Addressal and Removal of Variable categories. 
+
+The family_violence column, which is supposed to have values in either Y/N had a few values of "n". occurred_date_time_year, occurred_date_time_month were correctly present. The occurred_date_time_week_of_year column has been checked for the years with 53 weeks and found that in the years 2005, 2010, 2015, and 2021 had only 52 weeks with calendar. The apd_sector and apd_district had values that were related to the original values and had to be unified with the same names. For eg, BAKR of apd_sector has been renamed to BA, etc. 
+
+```{r,warning=FALSE,message=FALSE}
+count(crime_cleaned, family_violence)
+
+years <- count(crime_cleaned, occurred_date_time_year) 
+rm(years)
+
+months <- count(crime_cleaned, occurred_date_time_month) 
+rm(months)
+
+woy <- count(crime_cleaned, occurred_date_time_week_of_year) 
+rm(months)
+
+woy_53 <- crime_cleaned %>% filter(
+  occurred_date_time_week_of_year == 53
+)
+
+woy_53y <- count(woy_53, occurred_date_time_year)
+
+rm(woy, woy_53, woy_53y)
+
+day <- count(crime_cleaned, occurred_date_time_day) 
+rm(day)
+
+dow <- count(crime_cleaned, occurred_date_time_day_of_week) 
+rm(dow)
+
+h <- count(crime_cleaned, occurred_date_time_hour)
+m <- count(crime_cleaned, occurred_date_time_minute)
+rm(h,m)
+
+apds <- count(crime_cleaned, apd_sector)
+
+apdd <- count(crime_cleaned, apd_district)
+```
+
+# Renaming the values of apd_sector and apd_district columns. 
+
+On the apd_sector (in character) column, removed the cells with values that are 2, 8, 83, 88, 99, A, A1, AS, AV, F6, G, RD, UT.
+
+In the same column, changed the variables that are in different names to a single unifying name. 
+Converted AD, ADAM to AD; 
+Converted BA, BAKER, BAKR to BA; 
+Converted CH, C, CHAR to CH;
+Converted DA, D, DAVD, DAVID to DA;
+Converted ED, E, EDWD to ED;
+Converted FR, FRNK, FRK to FR;
+Converted G, GE to GE;
+Converted HE, HENR, HENRY, to HE;
+Converted I, ID, IDA to ID;
+
+Verified that everything is in the right order by inspection. 
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleaned %>%
+  # 1) remove rows whose apd_sector is in the “drop” list
+  filter(
+    !apd_sector %in% c(
+      "2","8","83","88","99",
+      "A","A1","AS","AV","F6",
+      "G","RD","UT"
+    )
+  ) %>%
+  # 2) collapse all variants down to your canonical codes
+  mutate(
+    apd_sector = case_when(
+      apd_sector %in% c("AD",   "ADAM")           ~ "AD",
+      apd_sector %in% c("BA",   "BAKER", "BAKR")  ~ "BA",
+      apd_sector %in% c("CH",   "C",     "CHAR")  ~ "CH",
+      apd_sector %in% c("DA",   "D",     "DAVD","DAVID") ~ "DA",
+      apd_sector %in% c("ED",   "E",     "EDWD") ~ "ED",
+      apd_sector %in% c("FR",   "FRNK",  "FRK")  ~ "FR",
+      apd_sector %in% c("GE")                    ~ "GE",
+      apd_sector %in% c("HE",   "HENR",  "HENRY", "HR")~ "HE",
+      apd_sector %in% c("I",    "ID",    "IDA")  ~ "ID",
+      TRUE                                       ~ apd_sector
+    )
+  )
+
+apds_cleaned <- count(crime_cleaned, apd_sector)
+
+apds
+
+apds_cleaned
+
+rm(apds, apds_cleaned)
+```
+
+On the apd_district (in character) column, removed the cells with values that are 0, 9, 99, A, C, D, D10, D9, DAVID, P, S. 
+
+On the apd_district (in character) column, changed the variables that are in different names to a single unifying name. 
+Converted 1, 10, 11, 12, 01, I1 to 1;
+Converted 2, A2, D2 to 2;
+Converted 4, 493, 04, A4, D4, I4 to 4;
+Converted 7, B7, C7, D7 to 7;
+Converted 8, 83, 88, C8 to 8.
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleaned %>%
+  # 1) remove rows whose apd_district is in the “drop” list
+  filter(
+    !apd_district %in% c(
+      "0","9","99","A","C","D","D10","D9","DAVID","P","S"
+    )
+  ) %>%
+  # 2) unify all remaining values to your five canonical districts
+  mutate(
+    apd_district = case_when(
+      apd_district %in% c("1",  "10", "11", "12", "01", "I1") ~ "1",
+      apd_district %in% c("2",  "A2", "D2")                 ~ "2",
+      apd_district %in% c("4",  "493","04", "A4", "D4", "I4")~ "4",
+      apd_district %in% c("7",  "B7", "C7", "D7")           ~ "7",
+      apd_district %in% c("8",  "83", "88", "C8")           ~ "8",
+      TRUE                                                   ~ apd_district
+    )
+  )
+
+apdd_cleaned <- count(crime_cleaned, apd_district)
+
+apdd
+
+apdd_cleaned
+
+rm(apdd_cleaned, apdd)
+```
+
+#Dropping a type of the outcome variable. 
+
+In order to adhere to the primary research question, where our goal was to predict the probability of a case solved status as "C", I have converted the category "O"to "C", where "O" represents that a case is cleared by arrest or other means, and "C" represents that a case has been solved. And dropped the cells which had a wrong type called "9" on the clearance_status column. 
+
+```{r,warning=FALSE,message=FALSE}
+count(crime_cleaned, clearance_status)
+
+crime_cleaned <- crime_cleaned %>%
+  mutate(
+    clearance_status = if_else(clearance_status == "O", "C", clearance_status)
+  )
+crime_cleaned <- crime_cleaned %>%
+  filter(clearance_status != "9")
+
+count(crime_cleaned, clearance_status)
+```
+
+# Cleaning other variables. 
+
+The lower case "n" of family_violence which is a wrong type acccording to majority classes, has been changed to "N". The values that was on the 53rd week on the years 2005, 2010, 2015, and 2021 were dropped, as they were inspected to such values. 
+```{r,warning=FALSE,message=FALSE}
+count(crime_cleaned, family_violence)
+crime_cleaned <- crime_cleaned %>%
+  # 1) Fix any lowercase “n” to “N” (also handles any lowercase “y” if you prefer)
+  mutate(
+    family_violence = toupper(family_violence)
+  ) %>%
+  # 2) Drop ISO‐week 53 in the years that never have 53 weeks
+  filter(
+    !(occurred_date_time_week_of_year == 53 &
+      occurred_date_time_year %in% c(2005, 2010, 2015, 2021))
+  )
+
+count(crime_cleaned, family_violence)
+```
+
+```{r,warning=FALSE,message=FALSE}
+woy_53 <- crime_cleaned %>% filter(
+  occurred_date_time_week_of_year == 53
+)
+
+woy_53y <- count(woy_53, occurred_date_time_year)
+
+woy_53y
+
+rm(woy_53, woy_53y)
+```
+
+```{r,warning=FALSE,message=FALSE}
+skim(crime_cleaned)
+```
+
+#Checked if the location types column is fine. 
+```{r,warning=FALSE,message=FALSE}
+lt <- count(crime_cleaned, location_type)
+lt
+rm(lt)
+```
+#Typesetting each column. 
+
+The types of data are four according to conventions. They are-
+
+Quantitative variables are numbers that we can measure.
+
+a) Quantitative Discrete - The measurable numbers , in smallest units, which can not be infinitely divided. The format must be integers. 
+
+b) Quantitative Continuous - The measurable numbers that can be infinitely divided into smaller units, like time, length, weight, or temperature, and anything that is derived from them. The format must be numeric. 
+
+Categorical variables are things that can be classified with labels. 
+
+c) Categorical Nominal - The labels that are only given for identification or describing the nature, and they do not have an inherent order. The format must be factor (nature) or character(id). 
+
+d) Categorical Ordinal - Categorical ordinal are labels that have an order — for example, the bronze, silver and gold medals in the Olympics. The format must be ordered.
+
+To look at how the columns of the data look like and the type they are in, every column has been discussed below. 
+
+i) Incident Number is a character. This is correct type according to conventions.
+
+ii) Highest Offense Description is a character. This is correct type according to conventions. The correct type is factor as it describes the nature of incidents. 
+
+
+The following features were converted to the right type setting format of R.
+
+
+```{r,warning=FALSE,message=FALSE}
+crime_cleaned <- crime_cleaned %>%
+  # 1) Convert these character columns to factors
+  mutate(
+    across(
+      c(
+        highest_offense_description,
+        family_violence,
+        location_type,
+        apd_sector,
+        apd_district,
+        clearance_status
+      ),
+      factor
+    )
+  ) %>%
+  # 2) Convert all date-time components to the respective types:
+  mutate(
+    # year as integer
+    occurred_date_time_year         = as.integer(occurred_date_time_year),
+    # month number → ordered factor Jan–Dec
+    occurred_date_time_month        = factor(
+                                         month.abb[occurred_date_time_month],
+                                         levels  = month.abb,
+                                         ordered = TRUE
+                                       ),
+    # week / day / hour / minute / second as integers
+    occurred_date_time_week_of_year = as.integer(occurred_date_time_week_of_year),
+    occurred_date_time_day          = as.integer(occurred_date_time_day),
+    occurred_date_time_hour         = as.integer(occurred_date_time_hour),
+    occurred_date_time_minute       = as.integer(occurred_date_time_minute),
+    # day_of_week → ordered factor Monday–Sunday
+    occurred_date_time_day_of_week  = factor(
+                                         occurred_date_time_day_of_week,
+                                         levels  = c(
+                                           "Monday","Tuesday","Wednesday",
+                                           "Thursday","Friday","Saturday","Sunday"
+                                         ),
+                                         ordered = TRUE
+                                       )
+  )
+
+crime_cleaned <- crime_cleaned %>% mutate(
+  highest_offense_code = as.character(highest_offense_code)
+)
+```
+
+```{r,warning=FALSE,message=FALSE}
+skim(crime_cleaned)
+```
+# Extract the test data of 2025.
+
+```{r,warning=FALSE,message=FALSE}
+library(readr)
+crime_test <- crime_cleaned %>% 
+  filter(occurred_date_time_year == 2025)
+
+# 2. Save crime_test to a CSV file
+# write_csv(crime_test, "crime_test.csv") #For Saving file
+```
+
+#Obtain the Main Data. 
+```{r,warning=FALSE,message=FALSE}
+crime_main <- crime_cleaned %>% 
+  filter(occurred_date_time_year != 2025)
+
+# write_csv(crime_main, "crime_main.csv") #For Saving file
+```
+
+# Sampling
+
+Due to restriction of the processing capabilities of the computers, An average of 0.92 million rows were sampled. The seed was my student numer 1906525.
+```{r,warning=FALSE,message=FALSE}
+# 1. Stratified sampling -------------------------------------------------
+
+set.seed(1906525)
+
+# compute the overall fraction needed
+frac <- 1.25e6 / nrow(crime_main)
+
+crime_sample <- crime_main %>%
+  group_by(
+    occurred_date_time_year,
+    occurred_date_time_month,
+    occurred_date_time_day,
+    location_type
+  ) %>%
+  slice_sample(prop = frac) %>%
+  ungroup()
+
+# make sure we got roughly 1 M
+nrow(crime_sample)
+```
+```{r, warning=FALSE, message=FALSE}
+# write_csv(crime_sample, "crime_sample.csv") #For Saving file
+```
+
+
+
