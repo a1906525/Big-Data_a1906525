@@ -7,6 +7,8 @@ https://drive.google.com/drive/folders/1__yIOXnz5ExNXI1e-uAAzDJL2rJfb4oC?usp=sha
 
 This drive contains the following two datasets:
 
+(Uploaded on 24/07 for Part C)
+
 1. **crime_train_final.csv**  
    The fully cleaned and transformed train data. 
 2. **crime_test_cleaned.csv**  
@@ -34,10 +36,15 @@ This drive contains the following two datasets:
 - **Plots_Viz.Rmd**  
   R Markdown script used for creating visual analysis plots.
 
-  - **Fin_dc_24_7_25.Rmd**  
+  ***Uploaded on (24/07/25 for Part-C Assignment)***
+  
+- **Crime_Sampling_100krows_23_07_25.R**
+  R script used for sampling 10% of the whole 1.17 million row dataset.
+  
+- **Fin_dc_24_7_25.Rmd**  
  The final document for transformation and cleaning of train data (2003-2024).
 
-  - **Final_dc_Test_24_7_25.Rmd**  
+- **Final_dc_Test_24_7_25.Rmd**  
 The final document for transformation and cleaning of test data (2025).
 
   
