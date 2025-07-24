@@ -5,16 +5,12 @@
 **Link to find datasets in Google Drive:**  
 https://drive.google.com/drive/folders/1__yIOXnz5ExNXI1e-uAAzDJL2rJfb4oC?usp=sharing
 
-This drive contains the following four datasets:
+This drive contains the following two datasets:
 
-1. **crime_all**  
-   Combined raw datasets (2003–2023 & 2003–2025) without any cleaning.  
-2. **crime_main**  
-   Cleaned dataset that includes all years up to 2024 (excludes 2025).  
-3. **crime_test**  
-   Cleaned dataset containing only the 2025 values; reserved for future cleaning/tests.  
-4. **crime_sample**  
-   A 1.17 million–row sample drawn from **crime_main** using seed `1906525` ( student ID).
+1. **crime_train_final.csv**  
+   The fully cleaned and transformed train data. 
+2. **crime_test_cleaned.csv**  
+   The fully cleaned test data (only 2025).  
 
 ---
 
@@ -37,3 +33,11 @@ This drive contains the following four datasets:
 
 - **Plots_Viz.Rmd**  
   R Markdown script used for creating visual analysis plots.
+
+  - **Fin_dc_24_7_25.Rmd**  
+ The final document for transformation and cleaning of train data (2003-2024).
+
+  - **Final_dc_Test_24_7_25.Rmd**  
+The final document for transformation and cleaning of test data (2025).
+
+  
