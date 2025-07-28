@@ -1,65 +1,46 @@
-# Big-Data_a1906525
+# Modeling & Analysis Code
 
-## Datasets
-
-**Link to find datasets in Google Drive:**  
-https://drive.google.com/drive/folders/1__yIOXnz5ExNXI1e-uAAzDJL2rJfb4oC?usp=sharing
-
-This drive contains the following two datasets:
-
-(Uploaded on 24/07 and after for Part C)
-
-1. **crime_train_final.csv**  
-   The fully cleaned and transformed train data. 
-2. **crime_test_cleaned.csv**  
-   The fully cleaned test data (only 2025).
-3. 
+This repository contains all code, cleaned data, and results for our comparative modeling study using CatBoost, HistGradientBoosting, LightGBM, TabTransformer, and TabNet, along with data‑cleaning and sample‑extraction scripts.
 
 ---
 
-## Repository Contents
+## 📂 Files & Notebooks
 
-- **Data Cleaning Results.pdf**  
-  Results and outputs from the R Markdown scripts used for data cleaning.
+| Filename                                  | Description                                                      |
+|-------------------------------------------|------------------------------------------------------------------|
+| **CatBoost Modelling.ipynb**              | CatBoost modelling code                                          |
+| **HistGradientBoosting_Modelling.ipynb**  | Hist Gradient Classifier modelling code                          |
+| **LightGBM_Modelling.ipynb**              | LightGBM modelling code                                          |
+| **Tab_Transformer_Modelling.ipynb**       | Tab Transformer modelling code                                   |
+| **TabNet_Modelling.ipynb**                | TabNet modelling code                                            |
+| **Final Data Cleaning (Test).Rmd**        | Final data cleaning for **test** set (incl. sine/cosine transforms) |
+| **Final Data Cleaning (Train).Rmd**       | Final data cleaning for **train** set (incl. sine/cosine transforms)|
+| **Sample Extraction of Train.Rmd**        | Sample extraction script for training set                        |
 
-- **Variable-Importance.pdf**  
-  Outputs and discussion of variable‐importance analysis.
+---
 
-- **Plots_Viz.pdf**  
-  R Markdown code and resulting plots for all visualizations.
+## 🔗 Google Drive Folder
 
-- **Data Cleaning.Rmd**  
-  R Markdown script containing all data‐cleaning code.
+You can find all raw notebooks, datasets, analyses, and results here:  
+[Google Drive Folder](https://drive.google.com/drive/folders/1__yIOXnz5ExNXI1e-uAAzDJL2rJfb4oC?usp=sharing)
 
-- **Variable Importance.Rmd**  
-  R Markdown script for generating variable‐importance plots.
+---
 
-- **Plots_Viz.Rmd**  
-  R Markdown script used for creating visual analysis plots.
+## 📁 Folder Structure on Drive
 
-  ***Uploaded on (24/07/25 and after for Part-C Assignment)***
-  
-- **Crime_Sampling_100krows_23_07_25.R**
-  R script used for sampling 10% of the whole 1.17 million row dataset.
-  
-- **Fin_dc_24_7_25.Rmd**  
- The final document for transformation and cleaning of train data (2003-2024).
+- **Codes**  
+  Contains all model notebooks in Google Colab format.
+- **Datasets**  
+  Fully cleaned **Train** and **Test** datasets (after all transformations).
+- **Excel Sheet Based Analysis**  
+  Visual summaries: plots, averages, and top‑5 result tables.
+- **Results**  
+  Model outputs: confusion matrices, performance metrics, and 15 sample test predictions.
 
-- **Final_dc_Test_24_7_25.Rmd**  
-The final document for transformation and cleaning of test data (2025).
+---
 
-- **TabNet_Modelling (1).ipynb**  
-Code for TabNet modelling.
+## 🚀 Getting Started
 
-- **CatBoost Modelling.ipynb**  
-Code for CatBoost Modelling.
-
-- **HistGradientBoosting_Modelling.ipynb**  
-Code for HistGradientBoostingClassifier Modelling.
-
-- **LightGBM_Modelling.ipynb**  
-Code for LightGBM Modelling.
-
-- **Tab_Transformer_Modelling.ipynb**  
-Code for Tab Transformer Modelling.
-
+1. Clone this repo:  
+   ```bash
+   git clone https://github.com/your‑username/your‑repo.git
