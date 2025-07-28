@@ -7,12 +7,13 @@ https://drive.google.com/drive/folders/1__yIOXnz5ExNXI1e-uAAzDJL2rJfb4oC?usp=sha
 
 This drive contains the following two datasets:
 
-(Uploaded on 24/07 for Part C)
+(Uploaded on 24/07 and after for Part C)
 
 1. **crime_train_final.csv**  
    The fully cleaned and transformed train data. 
 2. **crime_test_cleaned.csv**  
-   The fully cleaned test data (only 2025).  
+   The fully cleaned test data (only 2025).
+3. 
 
 ---
 
@@ -36,7 +37,7 @@ This drive contains the following two datasets:
 - **Plots_Viz.Rmd**  
   R Markdown script used for creating visual analysis plots.
 
-  ***Uploaded on (24/07/25 for Part-C Assignment)***
+  ***Uploaded on (24/07/25 and after for Part-C Assignment)***
   
 - **Crime_Sampling_100krows_23_07_25.R**
   R script used for sampling 10% of the whole 1.17 million row dataset.
@@ -47,7 +48,18 @@ This drive contains the following two datasets:
 - **Final_dc_Test_24_7_25.Rmd**  
 The final document for transformation and cleaning of test data (2025).
 
-- **TabNet Modelling.ipynb**  
-Ran TabNet Modelling and saved the code. 
+- **TabNet_Modelling (1).ipynb**  
+Code for TabNet modelling.
 
-  
+- **CatBoost Modelling.ipynb**  
+Code for CatBoost Modelling.
+
+- **HistGradientBoosting_Modelling.ipynb**  
+Code for HistGradientBoostingClassifier Modelling.
+
+- **LightGBM_Modelling.ipynb**  
+Code for LightGBM Modelling.
+
+- **Tab_Transformer_Modelling.ipynb**  
+Code for Tab Transformer Modelling.
+
