@@ -38,9 +38,3 @@ You can find all raw notebooks, datasets, analyses, and results here:
   Model outputs: confusion matrices, performance metrics, and 15 sample test predictions.
 
 ---
-
-## 🚀 Getting Started
-
-1. Clone this repo:  
-   ```bash
-   git clone https://github.com/your‑username/your‑repo.git
