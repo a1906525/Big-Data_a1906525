@@ -51,7 +51,7 @@ You can find all raw notebooks, datasets, analyses, and results here:
    test_dir = "/content/drive/MyDrive/Big Data Analysis and Project - a1906525/Datasets/crime_test_cleaned.csv"
 3. **Modelling**
    
-   As the modelling parts of LightGBM, CatBoost, HGB Classifier were run on L4 GPU, change the runtime type if needed. 
+   As the modelling parts of LightGBM, CatBoost, HGB Classifier were run on L4 GPU, change the runtime type if needed, but do not forget to remount the drive and reload the train and        test data.
 4. **Results**
 
    To find the model results :
