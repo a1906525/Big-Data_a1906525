@@ -29,7 +29,7 @@ You can find all raw notebooks, datasets, analyses, and results here:
 ## 📁 Folder Structure on Drive
 
 - **Codes**  
-  Contains all model notebooks in Google Colab format.
+  Contains all model notebooks in Google Colab format inside the designated folders.
 - **Datasets**  
   Fully cleaned **Train** and **Test** datasets (after all transformations).
 - **Excel Sheet Based Analysis**  
