@@ -52,4 +52,11 @@ You can find all raw notebooks, datasets, analyses, and results here:
 3. **Modelling**
    
    As the modelling parts of LightGBM, CatBoost, HGB Classifier were run on L4 GPU, change the runtime type if needed. 
+4. **Results**
 
+   To find the model results :
+   ```python
+   ##Replace the Model_name with LightGBM, TabNet, Tab Transformer, HistGradientBoosting, CatBoost as needed.
+   perf_dir = "/content/drive/MyDrive/Big Data Analysis and Project - a1906525/Results/Model_name/Performance Metrics" 
+   cm_dir = "/content/drive/MyDrive/Big Data Analysis and Project - a1906525/Results/Model_name/Confusion Matrices"
+   test_pred_dir = "/content/drive/MyDrive/Big Data Analysis and Project - a1906525/Model_name/LightGBM/Test Results"
