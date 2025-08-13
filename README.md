@@ -38,3 +38,17 @@ You can find all raw notebooks, datasets, analyses, and results here:
   Model outputs: confusion matrices, performance metrics, and 15 sample test predictions.
 
 ---
+
+##  To Run the Codes (in Google Colab)
+
+1. **Mount Google Drive**
+   ```python
+   from google.colab import drive
+   drive.mount('/content/drive')
+2. **Load the Test and Train dataset paths**
+   ```python
+   train_dir = "/content/drive/MyDrive/Big Data Analysis and Project - a1906525/Datasets/crime_train_final.csv"
+   test_dir = "/content/drive/MyDrive/Big Data Analysis and Project - a1906525/Datasets/crime_test_cleaned.csv"
+3. **Modelling**
+   As the modelling parts of LightGBM, CatBoost, HGB Classifier were run on L4 GPU, change the runtime type if needed. 
+
