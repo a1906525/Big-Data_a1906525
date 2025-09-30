@@ -16,6 +16,8 @@ This repository contains all code, cleaned data, and results for our comparative
 | **Final Data Cleaning (Test).Rmd**        | Final data cleaning for **test** set (incl. sine/cosine transforms) |
 | **Final Data Cleaning (Train).Rmd**       | Final data cleaning for **train** set (incl. sine/cosine transforms)|
 | **Sample Extraction of Train.Rmd**        | Sample extraction script for training set                        |
+| **Plots_Viz.Rmd**                         | Data Visualization plots after cleaning                          |
+| **Variable Importance.Rmd**               | Variable importance plots                                        |
 
 ---
 
